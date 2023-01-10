@@ -1,54 +1,29 @@
 import cv2
 import numpy as np
 import face_recognition
-import os
 from handle_sheet_index import update_col_index, get_current_index
-# from PIL import ImageGrab
 from google_sheet import invoke_present, get_sheet_name
 import sys
+import joblib
 
 
-# Finding the current sheet column index
-# current_index = get_current_index()
 
-
-def prepare_images(section):
-    path = f'images/{section}'
-    images = []
-    classNames = []
-    myList = os.listdir(path)
-    print(myList)
-    for cl in myList:
-        curImg = cv2.imread(f'{path}/{cl}')
-        images.append(curImg)
-        classNames.append(tuple(os.path.splitext(cl)[0].split(" ")))
-        print(classNames)
-    return images,classNames
-
-
-def findEncodings(images):
-    encodeList = []
-    for img in images:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        encode = face_recognition.face_encodings(img)[0]
-        encodeList.append(encode)
-    return encodeList
-    
 def markAttendance(student_id,current_index):
     invoke_present(student_id,current_index)
        
 
 def attendence_process(instruct,section,subject,col_idx):
-    get_sheet_name(subject) #set the sheet name 
+    get_sheet_name(section,subject) #set the sheet name 
     print("starting attendence process")
     cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
-    print("yeea",section)
 
     if instruct==None:
 
         print("inside if")
-        images, classNames = prepare_images(section)
-        encodeListKnown = findEncodings(images)
+        classNames, encodeListKnown = joblib.load(f'models/{section}_model')
+
+        # images, classNames = prepare_images(section)
+        # encodeListKnown = findEncodings(images)
         attended_student = []
 
         while True:
